@@ -5,10 +5,18 @@ module Redcarpet
 
     class RefinedStripper < StripDown
 
-      [:block_code, :block_quote, :block_html, :header, :list, :list_item, :paragraph].each do |method|
+      [:block_code, :block_quote, :block_html, :header, :paragraph].each do |method|
         define_method method do |*args|
           "\n#{args.first}\n"
         end
+      end
+
+      def list_item *args
+        "\t- #{args.first}"
+      end
+
+      def link(link, title, content)
+        "#{content}: #{link}"
       end
 
     end
