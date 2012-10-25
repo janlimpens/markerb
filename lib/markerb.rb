@@ -1,11 +1,13 @@
 require "action_view/template"
 require "redcarpet"
 require "markerb/railtie"
+require "redcarpet/render_strip"
 
 module Markerb
-  mattr_accessor :processing_options, :renderer
+  mattr_accessor :processing_options, :renderer, :text_renderer
   @@processing_options = {}
   @@renderer = Redcarpet::Render::HTML
+  @@text_renderer = Redcarpet::Render::StripDown
 
   class Handler
     def erb_handler
@@ -17,10 +19,11 @@ module Markerb
       if template.formats.include?(:html)
         "Redcarpet::Markdown.new(Markerb.renderer, Markerb.processing_options).render(begin;#{compiled_source};end).html_safe"
       else
-        compiled_source
+        "Redcarpet::Markdown.new(Markerb.text_renderer, {}).render(begin;#{compiled_source};end)"
       end
     end
   end
 end
+
 
 ActionView::Template.register_template_handler :markerb, Markerb::Handler.new
