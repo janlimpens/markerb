@@ -1,13 +1,13 @@
 require "action_view/template"
 require "redcarpet"
 require "markerb/railtie"
-require "redcarpet/render_strip"
+require "redcarpet/refined_stripper"
 
 module Markerb
   mattr_accessor :processing_options, :renderer, :text_renderer
   @@processing_options = {}
   @@renderer = Redcarpet::Render::HTML
-  @@text_renderer = Redcarpet::Render::StripDown
+  @@text_renderer = Redcarpet::Render::RefinedStripper
 
   class Handler
     def erb_handler
