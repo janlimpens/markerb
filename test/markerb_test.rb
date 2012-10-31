@@ -38,6 +38,15 @@ class Notifier < ActionMailer::Base
       format.html { render 'contact' }
     end
   end
+
+  def injected
+    @injection = "[Hello][1]" +
+            "\n[1]: http://world.com"
+    mail(:to => 'foo@bar.com', :from => "john.doe@example.com") do |format|
+      format.text { render 'injected' }
+      format.html { render 'injected' }
+    end
+  end
 end
 
 class TestRenderer < Redcarpet::Render::HTML
@@ -122,6 +131,12 @@ class MarkerbTest < ActiveSupport::TestCase
     expected_html = "<p>Hello <a href=\"http://hello.world\">world</a>!</p>"
     got_html = email.parts[1].body.encoded.strip
     assert_equal expected_html, got_html
+  end
+
+  test 'with injected markdown' do
+    email = Notifier.injected
+    assert_equal "Injected: Hello: http://world.com", email.parts[0].body.encoded.strip
+    assert_equal "<p><strong>Injected:</strong> <a href=\"http://world.com\">Hello</a></p>", email.parts[1].body.encoded.strip
   end
 
 end
