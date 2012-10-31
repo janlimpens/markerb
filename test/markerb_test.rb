@@ -24,17 +24,25 @@ class Notifier < ActionMailer::Base
     end
   end
 
+  def referenced_links
+    mail(:to => 'foo@bar.com', :from => "john.doe@example.com") do |format|
+      format.text { render 'referenced_links' }
+      format.html { render 'referenced_links' }
+    end
+  end
+
   def multiple_format_contact(recipient)
     @recipient = recipient
     mail(:to => @recipient, :from => "john.doe@example.com", :template => "contact") do |format|
-      format.text  { render 'contact' }
-      format.html  { render 'contact' }
+      format.text { render 'contact' }
+      format.html { render 'contact' }
     end
   end
 end
 
 class TestRenderer < Redcarpet::Render::HTML
   attr_accessor :show_text
+
   def initialize(render_options = {})
     @show_text = render_options.delete(:show_text)
     super(render_options)
@@ -60,7 +68,7 @@ class MarkerbTest < ActiveSupport::TestCase
   test "plain text should be sent as a plain text" do
     email = Notifier.contact("you@example.com", :text)
     assert_equal "text/plain", email.mime_type
-    assert_equal "Dual templates **rocks**!", email.body.encoded.strip
+    assert_equal "Dual templates rocks!", email.body.encoded.strip
   end
 
   test "html should be sent as html" do
@@ -74,11 +82,11 @@ class MarkerbTest < ActiveSupport::TestCase
     assert_equal 2, email.parts.size
     assert_equal "multipart/alternative", email.mime_type
     assert_equal "text/plain", email.parts[0].mime_type
-    assert_equal "Dual templates **rocks**!",
-      email.parts[0].body.encoded.strip
+    assert_equal "Dual templates rocks!",
+                 email.parts[0].body.encoded.strip
     assert_equal "text/html", email.parts[1].mime_type
     assert_equal "<p>Dual templates <strong>rocks</strong>!</p>",
-      email.parts[1].body.encoded.strip
+                 email.parts[1].body.encoded.strip
   end
 
   test "with a custom renderer" do
@@ -107,4 +115,13 @@ class MarkerbTest < ActiveSupport::TestCase
     assert_equal "text/html", email.mime_type
     assert_equal '<p>woot! <strong>Partial</strong></p>', email.body.encoded.strip
   end
+
+  test 'with referenced links' do
+    email = Notifier.referenced_links
+    assert_equal "Hello world: http://hello.world!", email.parts[0].body.encoded.strip
+    expected_html = "<p>Hello <a href=\"http://hello.world\">world</a>!</p>"
+    got_html = email.parts[1].body.encoded.strip
+    assert_equal expected_html, got_html
+  end
+
 end

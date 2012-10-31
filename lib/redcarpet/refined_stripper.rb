@@ -12,7 +12,7 @@ module Redcarpet
       end
 
       def list_item *args
-        "\t- #{args.first}"
+        "    - #{args.first}"
       end
 
       def link(link, title, content)
